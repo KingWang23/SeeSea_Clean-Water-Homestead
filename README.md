@@ -1,52 +1,87 @@
 # SeeSea 洁净水下家园
 <span style="color: red;">**代码会全部开源！！！**</span>
 
-SeeSea 是一套面向海洋垃圾治理行动的双端系统：
+SeeSea 是一套面向海洋垃圾治理行动的双端智能协作系统，用于把潜水员现场采集的水下图像、人工表单和志愿者反馈，转化为可识别、可核对、可追踪、可导出的治理数据。
 
-- 潜水员端：手机拍照或上传图片，填写经纬度、人工表单、志愿者反馈
-- 管理员端：案例审核、删除、状态流转、导出报告、潜水员管理、地图分析
-- AI 识别：传统视觉规则 + 可选本地 ONNX 检测器 + SiliconFlow `THUDM/GLM-4.1V-9B-Thinking`
-- LLM 分析：SiliconFlow `deepseek-ai/DeepSeek-R1-Distill-Qwen-7B` 负责文本分析、数据总结和文案生成
-- 指挥能力：管理员筛选后可生成 AI 指挥简报、同源污染预警、传播建议和数据质量提醒
+系统核心定位：
 
-## 启动
+- 潜水员端：移动端拍照/上传、填写位置和表单、提交现场案例
+- 管理员端：查看总览、审核案例、生成报告、导出数据、跟踪潜点态势
+- AI 分析链路：图像增强、垃圾识别、OCR/包装线索、表单核对、语义分析、扩散路径模拟、案例报告、指挥简报
+- 降级容错：远程 LLM 不可用时可回退到本地规则，保证系统仍可运行和演示
+
+## 1. 快速开始
+
+### 1.1 环境启动
 
 ```bash
+cd <project-root>
 conda activate clean_underwater_demo
 cp .env.example .env
-uvicorn app.main:app --reload --port 8000
-```
-
-长时间联调或频繁调用 LLM 时，建议关闭热重载，减少 SQLite 锁冲突和退出卡顿：
-
-```bash
-uvicorn app.main:app --port 8000
-```
-
-入口：
-
-- 登录页：`http://127.0.0.1:8000/`
-- 潜水员端：`http://127.0.0.1:8000/diver`
-- 管理员端：`http://127.0.0.1:8000/admin`
-
-说明：
-
-- 根路径 `/` 现在固定为登录页
-- 若需要让手机访问，请使用：
-
-```bash
 uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
-## 默认账号
+说明：
+
+- `<project-root>` 替换为当前项目根目录
+- 长时间联调建议不要使用 `--reload`，可减少 SQLite 锁冲突和退出卡顿
+- 本机访问：`http://127.0.0.1:8000/`
+- 手机访问：`http://你的电脑局域网IP:8000/`
+- 手机浏览器访问时必须使用 `http://`，不要使用 `https://`
+
+### 1.2 默认账号
 
 - 管理员：`admin / admin123`
 - 潜水员 A：`diver_a / diver123`
 - 潜水员 B：`diver_b / diver123`
 
-## SiliconFlow 配置
+### 1.3 基本流程
 
-系统已切换为 SiliconFlow：
+1. 管理员或潜水员从登录页进入系统
+2. 潜水员通过手机拍照或上传图片，填写位置、表单和反馈后提交案例
+3. 系统自动执行图像增强、垃圾识别、表单核对、语义分析和扩散模拟
+4. 管理员在后台查看案例详情、地图总览、风险提醒和 AI 指挥简报
+5. 管理员可更新审核状态、导出数据、复盘潜点情况
+
+## 2. 系统能力概览
+
+### 2.1 潜水员端
+
+- 手机拍照上传或相册选择
+- 图片预览
+- 浏览器定位 + 地图选点双模式
+- 人工表单条目录入
+- 志愿者语义反馈录入
+- 提交后查看原图、增强图、识别图和分析结果
+- 删除本人案例
+
+### 2.2 管理员端
+
+- 看板指标、地图、趋势、来源分布
+- AI 指挥简报
+- 风险预警和运营提醒
+- 案例详情查看
+- 识别与人工核对对比
+- 工作流状态维护
+- 新增潜水员账号
+- Markdown / JSON / CSV 导出
+- LLM 连通性测试
+
+### 2.3 AI 与分析能力
+
+- 水下图像增强
+- 传统视觉规则识别
+- 可选本地 ONNX 检测器融合
+- 可接入 SiliconFlow 视觉模型
+- OCR 与包装线索辅助判断
+- 人工表单自动核对
+- 志愿者反馈语义分析
+- 扩散路径规则模拟
+- 单案例报告与管理员简报生成
+
+## 3. SiliconFlow 配置
+
+系统默认使用 SiliconFlow：
 
 ```bash
 APP_SESSION_SECRET=replace-with-a-random-secret
@@ -63,49 +98,52 @@ LOCAL_DETECTOR_LABELS_PATH=
 
 说明：
 
-- 若 `SILICONFLOW_API_KEY` 为空，系统自动降级为本地规则识别与本地规则报告。
-- `SILICONFLOW_TIMEOUT_SECONDS` 可控制远程模型超时，默认 `60` 秒。
-- `SILICONFLOW_MAX_RETRIES` 控制失败后的重试次数，默认 `2`。
-- `SILICONFLOW_MAX_TOKENS` 控制单次输出上限，避免推理模型输出过长导致超时。
-- 当前项目默认使用 `https://api.siliconflow.cn/v1`。系统内部保留 `.com -> .cn` 的自动补试逻辑，便于不同网络环境下兼容。
-- 若配置 `LOCAL_DETECTOR_ONNX_PATH` 和 `LOCAL_DETECTOR_LABELS_PATH`，系统会额外启用本地 ONNX 检测器参与识别融合。
-- 管理员端会展示当前视觉模型和文本模型状态。
-- 管理员端与潜水员端已改为角色独立 token 鉴权，同一浏览器可分别登录两个角色，不再互相覆盖登录态。
+- 未配置 `SILICONFLOW_API_KEY` 时，系统会自动降级为本地规则
+- `SILICONFLOW_TIMEOUT_SECONDS` 控制超时
+- `SILICONFLOW_MAX_RETRIES` 控制重试次数
+- `SILICONFLOW_MAX_TOKENS` 控制单次输出长度
+- 当前项目默认使用 `.cn` 网关，并保留 `.com -> .cn` 的兼容补试逻辑
+- 若配置 `LOCAL_DETECTOR_ONNX_PATH` 和 `LOCAL_DETECTOR_LABELS_PATH`，系统会融合本地检测器结果
 
-## 新增能力
+## 4. 推荐文档阅读顺序
 
-- 删除案例：潜水员可删除自己的案例，管理员可删除任意案例
-- 删除清理：删除案例时会同步清理未被其他案例复用的上传图片、增强图和标注图
-- 相似案例推荐：详情页自动给出相近潜点 / 相近来源 / 相近风险案例
-- 证据链展示：每条 AI 识别会显示证据来源，例如 `cv-heuristic`、`local-dnn`、`glm-vision`
-- 管理员工作流：审核状态、清理状态、优先级、管理员备注
-- 导出：单案例 Markdown/JSON 导出，筛选后 CSV 导出
-- 文案生成：自动生成志愿者行动简报、公众传播文案、创新建议
-- 看板联动：管理员筛选条件会同步影响地图、统计图、列表和 AI 指挥简报
-
-## 关键文件
-
-- 后端入口：[app/main.py](./app/main.py)
-- 数据模型：[app/models.py](/home/stf/比赛/CCF%20海洋马拉松/Project/app/models.py)
-- SiliconFlow 接口：[app/services/siliconflow.py](.app/services/siliconflow.py)
-- 垃圾识别融合：[app/services/identifier.py](./app/services/identifier.py)
-- 本地 ONNX 检测器：[app/services/local_detector.py](./app/services/local_detector.py)
-- 报告与导出：[app/services/reporting.py](./app/services/reporting.py)
-- 管理员页：[app/templates/admin.html](./app/templates/admin.html)
-- 潜水员页：[app/templates/diver.html](./app/templates/diver.html)
-
-## 文档
-
-- 使用教程：[docs/usage_guide.md](./docs/usage_guide.md)
+- 快速上手：[docs/usage_guide.md](./docs/usage_guide.md)
 - 详细功能说明：[docs/feature_specification.md](./docs/feature_specification.md)
 - 详细使用说明：[docs/detailed_usage_manual.md](./docs/detailed_usage_manual.md)
 - 完整技术报告：[docs/full_technical_report.md](./docs/full_technical_report.md)
 - 手机访问说明：[docs/mobile_access_guide.md](./docs/mobile_access_guide.md)
 - PPT 讲解提纲：[docs/system_ppt_brief.md](./docs/system_ppt_brief.md)
 - 论文与项目参考：[docs/papers_and_projects.md](./docs/papers_and_projects.md)
+- 早期实施手册归档：[docs/implementation_playbook.md](./docs/implementation_playbook.md)
 
-## 测试
+## 5. 核心代码入口
+
+- 后端入口：`app/main.py`
+- 数据模型：`app/models.py`
+- 图像增强：`app/services/enhancer.py`
+- 垃圾识别融合：`app/services/identifier.py`
+- 本地检测器：`app/services/local_detector.py`
+- 报告与评估：`app/services/reporting.py`
+- SiliconFlow 接口：`app/services/siliconflow.py`
+- 管理员模板：`app/templates/admin.html`
+- 潜水员模板：`app/templates/diver.html`
+
+## 6. 测试与验证
 
 ```bash
 conda run -n clean_underwater_demo env PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 pytest -q
 ```
+
+如果要验证服务是否能正常导入：
+
+```bash
+conda run -n clean_underwater_demo python -c "from app.main import app; print('startup_ok')"
+```
+
+## 7. 当前版本特点
+
+- 可真实运行，不只是静态 Demo
+- 双角色权限隔离，支持同一浏览器分别登录管理员和潜水员
+- 移动端交互经过优化，支持拍照、地图选点和图片预览
+- 页面提供加载提示、错误状态提示和 LLM 连通性测试
+- 适合比赛演示、公益试点和后续技术扩展
