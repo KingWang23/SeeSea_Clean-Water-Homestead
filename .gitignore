@@ -1,0 +1,30 @@
+# ==================== 项目特定忽略 ====================
+/app/
+/data/
+/miniprogram/
+/scripts/
+/tests/
+/train/
+/yolo/
+/.codex
+.env
+.env.example
+*.onnx
+*.pt
+*.pth
+*.weights
+*.bin
+
+# ==================== 通用忽略 ====================
+__pycache__/
+*.pyc
+*.pyo
+build/
+dist/
+*.egg-info/
+.ipynb_checkpoints/
+.DS_Store
+*.log
+node_modules/
+venv/
+.venv/
