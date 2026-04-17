@@ -140,10 +140,3 @@ conda run -n clean_underwater_demo env PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 pytest -
 conda run -n clean_underwater_demo python -c "from app.main import app; print('startup_ok')"
 ```
 
-## 7. 当前版本特点
-
-- 可真实运行，不只是静态 Demo
-- 双角色权限隔离，支持同一浏览器分别登录管理员和潜水员
-- 移动端交互经过优化，支持拍照、地图选点和图片预览
-- 页面提供加载提示、错误状态提示和 LLM 连通性测试
-- 适合比赛演示、公益试点和后续技术扩展
