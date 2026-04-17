@@ -1,4 +1,5 @@
 # SeeSea 洁净水下家园
+<span style="color: red;">**代码会全部开源！！！**</span>
 
 SeeSea 是一套面向海洋垃圾治理行动的双端系统：
 
