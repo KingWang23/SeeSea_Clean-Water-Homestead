@@ -112,9 +112,7 @@ LOCAL_DETECTOR_LABELS_PATH=
 - 详细使用说明：[docs/detailed_usage_manual.md](./docs/detailed_usage_manual.md)
 - 完整技术报告：[docs/full_technical_report.md](./docs/full_technical_report.md)
 - 手机访问说明：[docs/mobile_access_guide.md](./docs/mobile_access_guide.md)
-- PPT 讲解提纲：[docs/system_ppt_brief.md](./docs/system_ppt_brief.md)
 - 论文与项目参考：[docs/papers_and_projects.md](./docs/papers_and_projects.md)
-- 早期实施手册归档：[docs/implementation_playbook.md](./docs/implementation_playbook.md)
 
 ## 5. 核心代码入口
 
