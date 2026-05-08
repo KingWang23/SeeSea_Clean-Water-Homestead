@@ -1,140 +1,108 @@
 # SeeSea 洁净水下家园
-<span style="color: red;">**代码会全部开源！！！**</span>
 
-SeeSea 是一套面向海洋垃圾治理行动的双端智能协作系统，用于把潜水员现场采集的水下图像、人工表单和志愿者反馈，转化为可识别、可核对、可追踪、可导出的治理数据。
+SeeSea 是面向水下垃圾治理的多智能体 AI 决策系统。系统围绕“洁净水下家园 / 认领一个潜点”的真实作业流程，把潜水员水下采集、岸上称重分类、后台审核、漂流溯源、任务派发和公益影响报告连接成完整闭环。
 
-系统核心定位：
+当前 GitHub 仓库暂时只公开项目文档、功能说明、使用手册、设计方案和路演材料。应用源代码、运行配置、数据库和模型文件已通过 `.gitignore` 屏蔽，暂不上传。
 
-- 潜水员端：移动端拍照/上传、填写位置和表单、提交现场案例
-- 管理员端：查看总览、审核案例、生成报告、导出数据、跟踪潜点态势
-- AI 分析链路：图像增强、垃圾识别、OCR/包装线索、表单核对、语义分析、扩散路径模拟、案例报告、指挥简报
-- 降级容错：远程 LLM 不可用时可回退到本地规则，保证系统仍可运行和演示
+## 项目定位
 
-## 1. 快速开始
+SeeSea 不只是一个水下图片识别工具，而是一个从“垃圾识别”升级到“污染治理决策”的数字化平台。
 
-### 1.1 环境启动
+核心能力：
 
-```bash
-cd <project-root>
-conda activate clean_underwater_demo
-cp .env.example .env
-uvicorn app.main:app --host 0.0.0.0 --port 8000
-```
+- 垃圾身份证：每件垃圾形成结构化档案，而不是普通识别框。
+- AI 证据链：每个判断都记录来源、模型、置信度和人工复核状态。
+- 漂流溯源沙盘：用地图展示垃圾点位、区域聚集、反向溯源和未来扩散。
+- 公益行动闭环：从发现、识别、复核、派发、清理、称重到报告发布形成闭环。
+- 多智能体报告：由视觉、溯源、安全、行动规划、公益影响等 Agent 协同输出治理报告。
 
-说明：
+## 需求匹配概览
 
-- `<project-root>` 替换为当前项目根目录
-- 长时间联调建议不要使用 `--reload`，可减少 SQLite 锁冲突和退出卡顿
-- 本机访问：`http://127.0.0.1:8000/`
-- 手机访问：`http://你的电脑局域网IP:8000/`
-- 手机浏览器访问时必须使用 `http://`，不要使用 `https://`
+| 项目方需求 | SeeSea 对应设计 |
+| --- | --- |
+| 垃圾溯源 AI 分析 | 垃圾身份证、AI 证据链、漂流溯源沙盘、多 Agent 报告 |
+| 多维协作线上平台 | 潜水员端、管理员端、手机网页访问、后台数据看板 |
+| 水下图像增强 | 原图、AI 增强图、AI 识别图三联展示，预留 FUnIE-GAN 接口 |
+| 垃圾来源辨识 | 100 类海洋垃圾分类、材质、数量、风险、来源活动推断 |
+| 志愿者反馈语义分析 | 提取垃圾密集度、环境复杂度、安全隐患，并可转化为复查任务 |
+| 沉浸式可视化 | 高德地图治理总览、任务地图、漂流沙盘和报告课件 |
+| 潜水作业流程 | 入水签到、拍照定位、上岸称重、分类计数、审核入库、数据报告 |
 
-### 1.2 默认账号
+## 系统功能模块
 
-- 管理员：`admin / admin123`
-- 潜水员 A：`diver_a / diver123`
-- 潜水员 B：`diver_b / diver123`
+### 潜水员端
 
-### 1.3 基本流程
+- 日历工作台：查看历史作业、任务、案例、工时和清理重量。
+- 水下模式：签到、安全确认、潜点选择、任务绑定、天气、能见度、水流、深度、定位和拍照上传。
+- 岸上模式：按日期复核案例，查看原图、增强图、AI 识别图，完成分类、数量、称重和确认入库。
+- 志愿者心声：提交现场体验和风险反馈，系统提取语义标签和风险关键词。
+- 我的任务：接收管理员派发的清理、巡查和复查任务，并提交完成状态。
 
-1. 管理员或潜水员从登录页进入系统
-2. 潜水员通过手机拍照或上传图片，填写位置、表单和反馈后提交案例
-3. 系统自动执行图像增强、垃圾识别、表单核对、语义分析和扩散模拟
-4. 管理员在后台查看案例详情、地图总览、风险提醒和 AI 指挥简报
-5. 管理员可更新审核状态、导出数据、复盘潜点情况
+### 管理员端
 
-## 2. 系统能力概览
+- 治理态势总览：真实地图、KPI、活动趋势、潜水员贡献表、材质分布和近期任务。
+- 潜水员活动管理：按潜水员查看工作日历、作业批次、案例和贡献数据。
+- 垃圾管理：查看垃圾身份证、原图、增强图、AI 识别图、证据链、人工审核和重新审核。
+- 任务分配：选择已有垃圾派发任务，也可在地图上选择新的任务地点。
+- 漂流溯源沙盘：支持单个垃圾和区域范围分析，展示来源轨迹、扩散轨迹、概率区和区域样本。
+- 报告中心：生成多智能体治理报告，支持草稿、确认发布、归档和打印/导出课件。
+- 人员管理：创建潜水员、审核员和管理员账号，并设置初始密码。
 
-### 2.1 潜水员端
+## 技术架构
 
-- 手机拍照上传或相册选择
-- 图片预览
-- 浏览器定位 + 地图选点双模式
-- 人工表单条目录入
-- 志愿者语义反馈录入
-- 提交后查看原图、增强图、识别图和分析结果
-- 删除本人案例
+当前系统设计采用：
 
-### 2.2 管理员端
+- 前端：响应式 Web，适配手机端、电脑端和主机端。
+- 地图：高德地图瓦片渲染，支持拖动、缩放和地图选点。
+- 后端：FastAPI。
+- 数据库：PostgreSQL + PostGIS，用于空间点位、区域查询和漂流分析。
+- AI 接口：FUnIE-GAN 图像增强、YOLO 检测、OCR、VLM 大模型识别、SiliconFlow 兼容接口。
+- 漂流分析：OpenDrift / Lagrangian particle tracking 思路，预留海流、潮汐、风速风向和岸线数据接入。
+- 报告生成：多智能体协作分析框架。
 
-- 看板指标、地图、趋势、来源分布
-- AI 指挥简报
-- 风险预警和运营提醒
-- 案例详情查看
-- 识别与人工核对对比
-- 工作流状态维护
-- 新增潜水员账号
-- Markdown / JSON / CSV 导出
-- LLM 连通性测试
+## 文档目录
 
-### 2.3 AI 与分析能力
+- [功能与需求匹配说明](./docs/feature_specification.md)
+- [详细使用文档](./docs/detailed_usage_manual.md)
+- [技术架构说明](./docs/technical_architecture.md)
+- [手机访问说明](./docs/mobile_access_guide.md)
+- [项目详细设计方案](./docs/design/SeeSea_系统详细设计方案.md)
+- [系统升级设计规划](./docs/design/system_upgrade_design_plan.md)
+- [8 分钟项目路演讲稿](./docs/roadshow/SeeSea_8分钟项目路演讲稿.md)
+- [8 分钟项目路演 PPT](./docs/roadshow/SeeSea_8分钟项目路演PPT.pptx)
+- [项目方需求文档](./docs/reference/需求文档.docx)
+- [潜水作业流程与 100 类海洋垃圾分类](./docs/reference/洁净水下家园潜水作业流程（简要说明附表100个海洋垃圾分类）.pdf)
 
-- 水下图像增强
-- 传统视觉规则识别
-- 可选本地 ONNX 检测器融合
-- 可接入 SiliconFlow 视觉模型
-- OCR 与包装线索辅助判断
-- 人工表单自动核对
-- 志愿者反馈语义分析
-- 扩散路径规则模拟
-- 单案例报告与管理员简报生成
+## 演示账号说明
 
-## 3. SiliconFlow 配置
+本仓库当前不公开源码，因此以下账号仅用于本地原型系统说明：
 
-系统默认使用 SiliconFlow：
+| 账号 | 默认密码 | 角色 | 入口 |
+| --- | --- | --- | --- |
+| `admin` | `seesea123` | 后台管理员 | 管理员端 |
+| `reviewer` | `seesea123` | AI 审核员 | 管理员端 |
+| `diver` | `seesea123` | 潜水员 | 潜水员端 |
+| `diver2` | `seesea123` | 潜水员 | 潜水员端 |
 
-```bash
-APP_SESSION_SECRET=replace-with-a-random-secret
-SILICONFLOW_API_KEY=你的 SiliconFlow Key
-SILICONFLOW_BASE_URL=https://api.siliconflow.cn/v1
-SILICONFLOW_VISION_MODEL=THUDM/GLM-4.1V-9B-Thinking
-SILICONFLOW_TEXT_MODEL=deepseek-ai/DeepSeek-R1-Distill-Qwen-7B
-SILICONFLOW_TIMEOUT_SECONDS=60
-SILICONFLOW_MAX_RETRIES=2
-SILICONFLOW_MAX_TOKENS=1200
-LOCAL_DETECTOR_ONNX_PATH=
-LOCAL_DETECTOR_LABELS_PATH=
-```
+## 当前开源范围
 
-说明：
+已公开：
 
-- 未配置 `SILICONFLOW_API_KEY` 时，系统会自动降级为本地规则
-- `SILICONFLOW_TIMEOUT_SECONDS` 控制超时
-- `SILICONFLOW_MAX_RETRIES` 控制重试次数
-- `SILICONFLOW_MAX_TOKENS` 控制单次输出长度
-- 当前项目默认使用 `.cn` 网关，并保留 `.com -> .cn` 的兼容补试逻辑
-- 若配置 `LOCAL_DETECTOR_ONNX_PATH` 和 `LOCAL_DETECTOR_LABELS_PATH`，系统会融合本地检测器结果
+- 项目 README
+- 功能说明
+- 使用文档
+- 技术架构说明
+- 设计方案
+- 路演材料
+- 项目需求参考材料
 
-## 4. 推荐文档阅读顺序
+暂不公开：
 
-- 快速上手：[docs/usage_guide.md](./docs/usage_guide.md)
-- 详细功能说明：[docs/feature_specification.md](./docs/feature_specification.md)
-- 详细使用说明：[docs/detailed_usage_manual.md](./docs/detailed_usage_manual.md)
-- 完整技术报告：[docs/full_technical_report.md](./docs/full_technical_report.md)
-- 手机访问说明：[docs/mobile_access_guide.md](./docs/mobile_access_guide.md)
-- 论文与项目参考：[docs/papers_and_projects.md](./docs/papers_and_projects.md)
+- 前端源代码
+- 后端源代码
+- 数据库文件
+- 运行环境文件
+- 模型权重和推理脚本
+- 本地 `.env` 配置
 
-## 5. 核心代码入口
-
-- 后端入口：`app/main.py`
-- 数据模型：`app/models.py`
-- 图像增强：`app/services/enhancer.py`
-- 垃圾识别融合：`app/services/identifier.py`
-- 本地检测器：`app/services/local_detector.py`
-- 报告与评估：`app/services/reporting.py`
-- SiliconFlow 接口：`app/services/siliconflow.py`
-- 管理员模板：`app/templates/admin.html`
-- 潜水员模板：`app/templates/diver.html`
-
-## 6. 测试与验证
-
-```bash
-conda run -n clean_underwater_demo env PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 pytest -q
-```
-
-如果要验证服务是否能正常导入：
-
-```bash
-conda run -n clean_underwater_demo python -c "from app.main import app; print('startup_ok')"
-```
-
+后续如需开源代码，可移除 `.gitignore` 中对应屏蔽规则，再按正式开源规范补充许可证、部署文档、测试说明和安全配置。

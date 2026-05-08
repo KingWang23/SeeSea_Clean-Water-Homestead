@@ -1,30 +1,53 @@
-# ==================== 项目特定忽略 ====================
+# SeeSea repository publish policy
+#
+# This GitHub repository currently publishes project documents, design notes,
+# usage manuals, roadshow materials, and requirement references only.
+# Source code and runtime artifacts are intentionally excluded for now.
+
+# Temporarily excluded application source code
 /app/
-/data/
-/miniprogram/
+/seesea/
+/static/
 /scripts/
 /tests/
 /train/
 /yolo/
-/.codex
+/miniprogram/
+app.py
+requirements.txt
+docker-compose.yml
+
+# Runtime data and local environments
+/data/
+*.db
+*.sqlite
+*.sqlite3
 .env
-.env.example
+.env.*
+!.env.example
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Model weights and large generated artifacts
 *.onnx
 *.pt
 *.pth
 *.weights
 *.bin
+*.ckpt
 
-# ==================== 通用忽略 ====================
-__pycache__/
-*.pyc
-*.pyo
+# Local tool and editor files
+.codex/
+.agents/
+.idea/
+.vscode/
+.DS_Store
+*.log
+node_modules/
 build/
 dist/
 *.egg-info/
 .ipynb_checkpoints/
-.DS_Store
-*.log
-node_modules/
-venv/
-.venv/
